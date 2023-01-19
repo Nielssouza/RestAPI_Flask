@@ -1,29 +1,8 @@
 from flask_restful import Resource, reqparse
 from models.hotel import HotelModel
+from flask_jwt_extended import jwt_required
 
-hoteis = [
-    {
-      'hotel_id': 'alpha',
-      'nome': 'Aplha Hotel',
-      'estrelas': 4.3,
-      'diaria': 420.34,
-      'cidade': 'Rio de Janeiro'  
-    },
-    {
-      'hotel_id': 'bravo',
-      'nome': 'Bravo Hotel',
-      'estrelas': 4.4,
-      'diaria': 380.90, 
-      'cidade': 'Santa Catarina' 
-    },
-    {
-      'hotel_id': 'charlie',
-      'nome': 'Charlie Hotel',
-      'estrelas': 3.9,
-      'diaria': 320.20, 
-      'cidade': 'Santa Catarina' 
-    }
-       ]
+
 class Hoteis(Resource):
     def get(self):
         return{'hoteis': [hotel.json() for hotel in HotelModel.query.all()]}
@@ -40,7 +19,8 @@ class Hotel(Resource):
         if hotel:
           return hotel.json()
         return{'message': 'Hotel not found.'}, 404 #not found         
-
+    
+    @jwt_required()
     def post(self, hotel_id):
         if HotelModel.find_hotel(hotel_id):
             return {"message": "Hotel id '{}' already exists." .format(hotel_id)}, 400 #Bad request
@@ -53,7 +33,7 @@ class Hotel(Resource):
           return{'message': 'An internal error ocurred trying to save hotel.'}, 500 # Internal Server Error 
         return hotel.json()
        
-   
+    @jwt_required()
     def put(self, hotel_id):
        dados = Hotel.argumentos.parse_args()
        hotel_encontrado = HotelModel.find_hotel(hotel_id)
@@ -68,6 +48,7 @@ class Hotel(Resource):
            return{'message': 'An internal error ocurred trying to save hotel.'}, 500 # Internal Server Error 
        return hotel.json(), 201 # created criado
     
+    @jwt_required()
     def delete(self, hotel_id):
         hotel = HotelModel.find_hotel(hotel_id)
         if hotel:
